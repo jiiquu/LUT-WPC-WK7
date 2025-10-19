@@ -20,7 +20,10 @@ let player;
 let prey;
 let cursors;
 let scoreText;
+let timerText;
 let preyTimer;
+let gameTimer;
+let timeLeft = 30;
 let score = 0;
 
 function preload() {
@@ -82,6 +85,29 @@ function create() {
         }
     }
     scoreText = this.add.text(16, 16, 'score: 0', { fontsize: '32px', fill: '#000'})
+    timerText = this.add.text(600, 16, 'time: ' + timeLeft, { fontsize: '32px', fill: '#000'})
+    
+    gameTimer = this.time.addEvent({
+        delay: 1000,
+        callback: updateTimer,
+        callbackScope: this,
+        loop: true
+    });
+    
+    function updateTimer() {
+        timeLeft -= 1;
+        timerText.setText('time: ' + timeLeft);
+        
+        if (timeLeft <= 0) {
+            gameTimer.destroy();
+            preyTimer.destroy();
+            this.physics.pause();
+            this.add.text(300,300, 'Game Over, final score: ' + score, { fontsize: '64px', fill: '#000' }
+            )
+            gameOver = true;
+        }
+    }
+
 }
 function update() {
     if (cursors.left.isDown) {
