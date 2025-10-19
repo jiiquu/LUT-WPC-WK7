@@ -5,7 +5,7 @@ const config = {
     physics: {
         default: 'arcade',
         arcade: {
-            gravity: { y: 10 }
+            gravity: { y: -10 }
         }
     },
     scene: {
@@ -17,14 +17,21 @@ const config = {
 
 let game = new Phaser.Game(config);
 let player;
+let playerSpeed = 200;
 let prey;
+let medusa;
+let grass;
+let bubble;
+let treasure;
 let cursors;
 let scoreText;
 let timerText;
 let preyTimer;
+let medusaTimer;
 let gameTimer;
-let timeLeft = 30;
+let timeLeft = 60;
 let score = 0;
+let gameOver = false;
 
 function preload() {
     this.load.svg('fish1', 'assets/graphics/fish1.svg', {scale: 0.1});
@@ -34,11 +41,15 @@ function preload() {
     this.load.svg('fish5', 'assets/graphics/fish5.svg', {scale: 0.1});
     this.load.svg('fish6', 'assets/graphics/fish6.svg', {scale: 0.1});
     this.load.svg('player', 'assets/graphics/player.svg', {scale: 1.0});
-    this.load.svg('grass', 'assets/graphics/grass.svg', {scale: 0.5})
+    this.load.svg('grass', 'assets/graphics/grass.svg', {scale: 0.5});
+    this.load.svg('medusa', 'assets/graphics/medusa.svg', {scale: 0.1});
     this.load.image('water', 'assets/graphics/water.png');
+    this.load.svg('treasure', 'assets/graphics/treasure.svg', {scale: 0.2});
+    this.load.image('bubble', 'assets/graphics/bubble.png');
 }
 function create() {
     this.add.image(400, 300, 'water');
+    //this.add.image(700, 550, 'treasure').setScale(0.2);
     //this.add.image(Phaser.Math.Between(100, 700), 550, 'grass');
     player = this.physics.add.sprite(100, 500, 'player');
     player.setScale(0.2);
@@ -50,13 +61,47 @@ function create() {
         allowGravity: false,
         key: 'grass',
         repeat: 0,
-        setXY: { x: Phaser.Math.Between(250, 600), y: 450, stepX: 100 }
+        setXY: { x: Phaser.Math.Between(250, 550), y: 450, stepX: 100 }
     });
     this.physics.add.collider(player, grass);
+    
 
-    prey = this.physics.add.group()
+    prey = this.physics.add.group();
+    medusa = this.physics.add.group();
+    bubble = this.physics.add.group();
+    treasure = this.physics.add.group({
+        immovable: true,
+        allowGravity: false,
+        key: 'treasure',
+        repeat: 0,
+        setXY: { x: 700, y: 550, stepX: 100 }
+    });
+    
+    function popTreasure(player, treasure) {
+        treasure.disableBody(true, true);
+        let x = treasure.x;
+    
+        for (let i = 0; i < Phaser.Math.Between(3, 5); i++) {
+            let newPrey = prey.create(
+                x + Phaser.Math.Between(-20, 20),
+                550,
+                `fish${Phaser.Math.Between(1,5)}`
+            );
+            newPrey.setVelocityY(Phaser.Math.Between(-50, -100));
+            newPrey.setVelocityX(Phaser.Math.Between(-100, -150));
+        }
+    }
+    
+    this.physics.add.overlap(player, treasure, popTreasure, null, this);
 
     this.physics.add.overlap(player, prey, eatPrey, null, this);
+    this.physics.add.overlap(player, medusa, hitMedusa, null, this);
+    this.physics.add.overlap(player, bubble, hitBubble, null, this);
+
+    function hitBubble(player, bubble) {
+        bubble.disableBody(true, true);
+        
+    }
 
     preyTimer = this.time.addEvent({
         delay: 2000,
@@ -64,26 +109,55 @@ function create() {
         callbackScope: this,
         loop: true
     })
+    medusaTimer = this.time.addEvent({
+        delay: 5000,
+        callback: spawnMedusas,
+        callbackScope: this,
+        loop: true
+    })
+    bubbleTimer = this.time.addEvent({
+        delay: 500,
+        callback: spawnBubbles,
+        callbackScope: this,
+        loop: true
+    })
+    function hitMedusa() {
+        this.scene.restart();
+    }
     function spawnPrey() {
         let x = Phaser.Math.Between(50, 750);
         let newPrey = prey.create(x, 0, `fish${Phaser.Math.Between(1,6)}`);
         newPrey.setVelocityY(Phaser.Math.Between(50, 100));
         newPrey.setVelocityX(Phaser.Math.Between(-50, 50));
     }
+    function spawnMedusas() {
+        let x = Phaser.Math.Between(50, 750);
+        let newMedusa = medusa.create(x, 600, `medusa`);
+        newMedusa.setVelocityY(Phaser.Math.Between(-25, -50));
+        newMedusa.setVelocityX(Phaser.Math.Between(-50, 50));
+
+    }
+    function spawnBubbles() {
+        let x = Phaser.Math.Between(50, 750);
+        let newBubble = bubble.create(x, 600, 'bubble');
+        newBubble.setVelocityY(-100);
+    }
 
     function eatPrey(player, prey) {
+        prey.disableBody(true, true);
         if (prey.texture.key === 'fish6') {
             this.scene.restart();
         } else if (prey.texture.key === 'fish5'){
-            prey.disableBody(true, true);
             score += 20;
-            scoreText.setText('score: ' + score);
+        } else if (prey.texture.key === 'fish4') {
+            playerSpeed += 50;
+        } else if (prey.texture.key === 'fish3') {
+            playerSpeed -= 50;
         } else {
-            prey.disableBody(true, true);
             score += 10;
-            scoreText.setText('score: ' + score);
         }
-    }
+        scoreText.setText('score: ' + score);}
+    
     scoreText = this.add.text(16, 16, 'score: 0', { fontsize: '32px', fill: '#000'})
     timerText = this.add.text(600, 16, 'time: ' + timeLeft, { fontsize: '32px', fill: '#000'})
     
@@ -101,9 +175,10 @@ function create() {
         if (timeLeft <= 0) {
             gameTimer.destroy();
             preyTimer.destroy();
+            medusaTimer.destroy();
+            bubbleTimer.destroy();
             this.physics.pause();
-            this.add.text(300,300, 'Game Over, final score: ' + score, { fontsize: '64px', fill: '#000' }
-            )
+            this.add.text(300, 300, 'Game Over, final score: ' + score, { fontsize: '64px', fill: '#000' });
             gameOver = true;
         }
     }
@@ -111,11 +186,11 @@ function create() {
 }
 function update() {
     if (cursors.left.isDown) {
-        player.setVelocityX(-200);
+        player.setVelocityX(-playerSpeed);
         player.setFlipX(true);
     }
     else if (cursors.right.isDown) {
-        player.setVelocityX(200);
+        player.setVelocityX(playerSpeed);
         player.setFlipX(false);
     }
     else {
@@ -132,3 +207,4 @@ function update() {
         player.setVelocityY(0);
     }
 }
+
