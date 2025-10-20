@@ -44,27 +44,27 @@ let lureFXTween;
 
 
 function preload() {
-    this.load.svg('fish1', './assets/graphics/fish1.svg', {scale: 0.1});
-    this.load.svg('fish2', './assets/graphics/fish2.svg', {scale: 0.1});
-    this.load.svg('fish3', './assets/graphics/fish3.svg', {scale: 0.1});
-    this.load.svg('fish4', './assets/graphics/fish4.svg', {scale: 0.1});
-    this.load.svg('fish5', './assets/graphics/fish5.svg', {scale: 0.1});
-    this.load.svg('fish6', './assets/graphics/fish6.svg', {scale: 0.1});
-    this.load.svg('player', './assets/graphics/player.svg', {scale: 1.0});
-    this.load.svg('grass', './assets/graphics/grass.svg', {scale: 0.5});
-    this.load.svg('medusa', './assets/graphics/medusa.svg', {scale: 0.1});
-    this.load.image('water', './assets/graphics/water.png');
-    this.load.svg('treasure', './assets/graphics/treasure.svg', {scale: 0.2});
-    this.load.image('bubble', './assets/graphics/bubble.png');
+    this.load.svg('fish1', 'assets/graphics/fish1.svg', {scale: 0.1});
+    this.load.svg('fish2', 'assets/graphics/fish2.svg', {scale: 0.1});
+    this.load.svg('fish3', 'assets/graphics/fish3.svg', {scale: 0.1});
+    this.load.svg('fish4', 'assets/graphics/fish4.svg', {scale: 0.1});
+    this.load.svg('fish5', 'assets/graphics/fish5.svg', {scale: 0.1});
+    this.load.svg('fish6', 'assets/graphics/fish6.svg', {scale: 0.1});
+    this.load.svg('player', 'assets/graphics/player.svg', {scale: 1.0});
+    this.load.svg('grass', 'assets/graphics/grass.svg', {scale: 0.5});
+    this.load.svg('medusa', 'assets/graphics/medusa.svg', {scale: 0.1});
+    this.load.image('water', 'assets/graphics/water.png');
+    this.load.svg('treasure', 'assets/graphics/treasure.svg', {scale: 0.2});
+    this.load.image('bubble', 'assets/graphics/bubble.png');
     
-    this.load.audio('theme', './assets/sound/theme.mp3');
-    this.load.audio('fish1', './assets/sound/fish1.mp3');
-    this.load.audio('fish2', './assets/sound/fish2.mp3');
-    this.load.audio('fish3', './assets/sound/fish3.mp3');
-    this.load.audio('fish4', './assets/sound/fish4.mp3');
-    this.load.audio('fish5', './assets/sound/fish5.mp3');
-    this.load.audio('fish6', './assets/sound/fish6.mp3');
-    this.load.audio('medusa', './assets/sound/medusa.mp3');
+    this.load.audio('theme', 'assets/sound/theme.mp3');
+    this.load.audio('fish1', 'assets/sound/fish1.mp3');
+    this.load.audio('fish2', 'assets/sound/fish2.mp3');
+    this.load.audio('fish3', 'assets/sound/fish3.mp3');
+    this.load.audio('fish4', 'assets/sound/fish4.mp3');
+    this.load.audio('fish5', 'assets/sound/fish5.mp3');
+    this.load.audio('fish6', 'assets/sound/fish6.mp3');
+    this.load.audio('medusa', 'assets/sound/medusa.mp3');
 }
 function create() {
     this.add.image(400, 300, 'water');
