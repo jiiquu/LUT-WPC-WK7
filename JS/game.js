@@ -18,6 +18,7 @@ const config = {
 let game = new Phaser.Game(config);
 let player;
 let playerSpeed = 200;
+let playerVerticalSpeed = 100;
 let prey;
 let medusa;
 let grass;
@@ -29,9 +30,11 @@ let timerText;
 let preyTimer;
 let medusaTimer;
 let gameTimer;
+let music;
 let timeLeft = 60;
 let score = 0;
 let gameOver = false;
+
 
 function preload() {
     this.load.svg('fish1', 'assets/graphics/fish1.svg', {scale: 0.1});
@@ -46,9 +49,25 @@ function preload() {
     this.load.image('water', 'assets/graphics/water.png');
     this.load.svg('treasure', 'assets/graphics/treasure.svg', {scale: 0.2});
     this.load.image('bubble', 'assets/graphics/bubble.png');
+
+    this.load.audio('theme', 'assets/sound/theme.mp3');
+    this.load.audio('fish1', 'assets/sound/fish1.mp3');
+    this.load.audio('fish2', 'assets/sound/fish2.mp3');
+    this.load.audio('fish3', 'assets/sound/fish3.mp3');
+    this.load.audio('fish4', 'assets/sound/fish4.mp3');
+    this.load.audio('fish5', 'assets/sound/fish5.mp3');
+    this.load.audio('fish6', 'assets/sound/fish6.mp3');
+    this.load.audio('medusa', 'assets/sound/medusa.mp3');
 }
 function create() {
     this.add.image(400, 300, 'water');
+    
+    
+    if (!music || !music.isPlaying) {
+        music = this.sound.add('theme');
+        music.play({loop: true, volume: 0.5});
+    }
+
     //this.add.image(700, 550, 'treasure').setScale(0.2);
     //this.add.image(Phaser.Math.Between(100, 700), 550, 'grass');
     player = this.physics.add.sprite(100, 500, 'player');
@@ -100,7 +119,8 @@ function create() {
 
     function hitBubble(player, bubble) {
         bubble.disableBody(true, true);
-        
+        this.sound.play(`fish${Phaser.Math.Between(1,5)}`, {rate: 3.0, volume: 0.5})
+        score += 1;
     }
 
     preyTimer = this.time.addEvent({
@@ -121,8 +141,11 @@ function create() {
         callbackScope: this,
         loop: true
     })
-    function hitMedusa() {
-        this.scene.restart();
+    function hitMedusa(player, medusa) {
+        this.sound.play('medusa');
+        medusa.disableBody(true, true);
+        score -= 10;
+        playerSpeed = -playerSpeed;
     }
     function spawnPrey() {
         let x = Phaser.Math.Between(50, 750);
@@ -146,14 +169,26 @@ function create() {
     function eatPrey(player, prey) {
         prey.disableBody(true, true);
         if (prey.texture.key === 'fish6') {
-            this.scene.restart();
+            this.sound.play('fish6');
+            score -= 20;
+            player.setFlipY(!player.flipY);
+            playerVerticalSpeed = -playerVerticalSpeed;
         } else if (prey.texture.key === 'fish5'){
+            this.sound.play('fish5');
             score += 20;
         } else if (prey.texture.key === 'fish4') {
-            playerSpeed += 50;
+            this.sound.play('fish4');
+            playerSpeed += 25;
+            score += 10;
         } else if (prey.texture.key === 'fish3') {
-            playerSpeed -= 50;
+            this.sound.play('fish3');
+            playerSpeed -= 25;
+            score += 10;
+        } else if (prey.texture.key === 'fish2') {
+            this.sound.play('fish2');
+            timeLeft += 10;
         } else {
+            this.sound.play('fish1');
             score += 10;
         }
         scoreText.setText('score: ' + score);}
@@ -177,6 +212,7 @@ function create() {
             preyTimer.destroy();
             medusaTimer.destroy();
             bubbleTimer.destroy();
+            music.stop();
             this.physics.pause();
             this.add.text(300, 300, 'Game Over, final score: ' + score, { fontsize: '64px', fill: '#000' });
             gameOver = true;
@@ -185,6 +221,10 @@ function create() {
 
 }
 function update() {
+    if (music.isPlaying) {
+        music.rate = Math.max(0.5, Math.min(2.0, Math.abs(playerSpeed) / 200));
+    }
+
     if (cursors.left.isDown) {
         player.setVelocityX(-playerSpeed);
         player.setFlipX(true);
@@ -194,17 +234,17 @@ function update() {
         player.setFlipX(false);
     }
     else {
-        player.setVelocityX(0);
+        player.setVelocityX(10);
     }
     
     if (cursors.up.isDown) {
-        player.setVelocityY(-100);
+        player.setVelocityY(-playerVerticalSpeed);
     }
     else if (cursors.down.isDown) {
-        player.setVelocityY(100);
+        player.setVelocityY(playerVerticalSpeed);
     }
     else {
-        player.setVelocityY(0);
+        player.setVelocityY(-10);
     }
 }
 
