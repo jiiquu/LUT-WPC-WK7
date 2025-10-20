@@ -3,11 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Game</title>
-    <script src="//cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.js"></script>
+    <title>Deep Sea Hunter</title>
+    <link rel="stylesheet" href="CSS/style.css">
+    <script src="//cdn.jsdelivr.net/npm/phaser@3.86.0/dist/phaser.js"></script>
     <script src="JS/game.js"></script>
 </head>
 <body>
-    
+    <div id="game-container"></div>
+    <div id="info-container">
+    <h2>Deep Sea Hunter</h2>
+    <p>Eat fish for points! But beware, some fish make you dizzy. Luckily, there's always an antidote...<br>
+    Move around with the <strong><span style="color: #ff00ff">cursor keys</span></strong>, press <strong><span style="color: #ff00ff">space bar</span></strong> to activate the lure.</p>
+    <table>
+        <tr>
+            <th>Picture</th><th>Type</th><th>Points</th><th>Effect</th>
+        </tr>
+        <tr>
+            <td><img src="assets/graphics/fish1.svg" alt="Red Snapper" height="40"></td>
+            <td>Red Snapper</td>
+            <td>+10</td>
+            <td></td>
+        </tr>
+         <tr>
+            <td><img src="assets/graphics/fish5.svg" alt="Striped Bass" height="40"></td>
+            <td>Striped Bass</td>
+            <td>+20</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><img src="assets/graphics/fish2.svg" alt="Yellowfin Tuna" height="40"></td>
+            <td>Yellowfin Tuna</td>
+            <td>0</td>
+            <td>+10s time</td>
+        </tr>
+        <tr>
+            <td><img src="assets/graphics/fish3.svg" alt="Green Arrow" height="40"></td>
+            <td>Green Arrow</td>
+            <td>+10</td>
+            <td>Slow down</td>
+        </tr>
+        <tr>
+            <td><img src="assets/graphics/fish4.svg" alt="Blue Angel" height="40"></td>
+            <td>Blue Angel</td>
+            <td>+10</td>
+            <td>Speed up</td>
+        </tr>
+        <td>
+            <tr>
+                <td><img src="assets/graphics/fish6.svg" alt="Pufferfish" height="40"></td>
+                <td>Pufferfish</td>
+                <td>-20</td>
+                <td>Invert Y</td>
+            </tr>
+        </td>
+        <td>
+            <tr>
+                <td><img src="assets/graphics/medusa.svg" alt="Jellyfish" height="40"></td>
+                <td>Jellyfish</td>
+                <td>-10</td>
+                <td>Invert X</td>
+            </tr>
+        </td>
+        </div>
 </body>
 </html>

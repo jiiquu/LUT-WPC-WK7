@@ -2,6 +2,7 @@ const config = {
     type : Phaser.AUTO,
     width: 800,
     height: 600,
+    parent: 'game-container',
     physics: {
         default: 'arcade',
         arcade: {
@@ -29,11 +30,17 @@ let scoreText;
 let timerText;
 let preyTimer;
 let medusaTimer;
+let medusaSpawnDelay = 5000;
 let gameTimer;
 let music;
 let timeLeft = 60;
 let score = 0;
 let gameOver = false;
+let lurePowerup;
+let spacebar;
+let lureTimer;
+let lureFX;
+let lureFXTween;
 
 
 function preload() {
@@ -68,12 +75,11 @@ function create() {
         music.play({loop: true, volume: 0.5});
     }
 
-    //this.add.image(700, 550, 'treasure').setScale(0.2);
-    //this.add.image(Phaser.Math.Between(100, 700), 550, 'grass');
     player = this.physics.add.sprite(100, 500, 'player');
     player.setScale(0.2);
     player.setCollideWorldBounds(true);
     cursors = this.input.keyboard.createCursorKeys();
+    spacebar = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
     
     grass = this.physics.add.group({
         immovable: true,
@@ -82,8 +88,6 @@ function create() {
         repeat: 0,
         setXY: { x: Phaser.Math.Between(250, 550), y: 450, stepX: 100 }
     });
-    this.physics.add.collider(player, grass);
-    
 
     prey = this.physics.add.group();
     medusa = this.physics.add.group();
@@ -104,15 +108,13 @@ function create() {
             let newPrey = prey.create(
                 x + Phaser.Math.Between(-20, 20),
                 550,
-                `fish${Phaser.Math.Between(1,5)}`
-            );
+                `fish${Phaser.Math.Between(1,5)}`);
             newPrey.setVelocityY(Phaser.Math.Between(-50, -100));
-            newPrey.setVelocityX(Phaser.Math.Between(-100, -150));
+            newPrey.setVelocityX(Phaser.Math.Between(-25, 25));        
         }
     }
     
     this.physics.add.overlap(player, treasure, popTreasure, null, this);
-
     this.physics.add.overlap(player, prey, eatPrey, null, this);
     this.physics.add.overlap(player, medusa, hitMedusa, null, this);
     this.physics.add.overlap(player, bubble, hitBubble, null, this);
@@ -121,6 +123,7 @@ function create() {
         bubble.disableBody(true, true);
         this.sound.play(`fish${Phaser.Math.Between(1,5)}`, {rate: 3.0, volume: 0.5})
         score += 1;
+        scoreText.setText('score: ' + score);
     }
 
     preyTimer = this.time.addEvent({
@@ -129,8 +132,9 @@ function create() {
         callbackScope: this,
         loop: true
     })
+    
     medusaTimer = this.time.addEvent({
-        delay: 5000,
+        delay: medusaSpawnDelay,
         callback: spawnMedusas,
         callbackScope: this,
         loop: true
@@ -158,8 +162,8 @@ function create() {
         let newMedusa = medusa.create(x, 600, `medusa`);
         newMedusa.setVelocityY(Phaser.Math.Between(-25, -50));
         newMedusa.setVelocityX(Phaser.Math.Between(-50, 50));
-
     }
+    
     function spawnBubbles() {
         let x = Phaser.Math.Between(50, 750);
         let newBubble = bubble.create(x, 600, 'bubble');
@@ -187,11 +191,36 @@ function create() {
         } else if (prey.texture.key === 'fish2') {
             this.sound.play('fish2');
             timeLeft += 10;
+            timerText.setText('time: ' + timeLeft);
         } else {
             this.sound.play('fish1');
             score += 10;
         }
-        scoreText.setText('score: ' + score);}
+        scoreText.setText('score: ' + score);
+        
+        let newDelay = medusaSpawnDelay;
+        if (score >= 200) {
+            newDelay = 1000;
+        } else if (score >= 150) {
+            newDelay = 2000;
+        } else if (score >= 100) {
+            newDelay = 3000;
+        } else if (score >= 50) {
+            newDelay = 4000;
+        }
+        
+        if (newDelay !== medusaSpawnDelay) {
+            medusaSpawnDelay = newDelay;
+            medusaTimer.destroy();
+            medusaTimer = this.time.addEvent({
+                delay: medusaSpawnDelay,
+                callback: spawnMedusas,
+                callbackScope: this,
+                loop: true
+            });
+        }
+        
+    }
     
     scoreText = this.add.text(16, 16, 'score: 0', { fontsize: '32px', fill: '#000'})
     timerText = this.add.text(600, 16, 'time: ' + timeLeft, { fontsize: '32px', fill: '#000'})
@@ -202,11 +231,11 @@ function create() {
         callbackScope: this,
         loop: true
     });
-    
+
     function updateTimer() {
         timeLeft -= 1;
         timerText.setText('time: ' + timeLeft);
-        
+       
         if (timeLeft <= 0) {
             gameTimer.destroy();
             preyTimer.destroy();
@@ -218,7 +247,6 @@ function create() {
             gameOver = true;
         }
     }
-
 }
 function update() {
     if (music.isPlaying) {
@@ -245,6 +273,46 @@ function update() {
     }
     else {
         player.setVelocityY(-10);
+    }
+
+    if (Phaser.Input.Keyboard.JustDown(spacebar) && !lurePowerup) {
+        lurePowerup = true;
+        lureFX = player.postFX.addBloom(0xffffff, 1, 1, 0, 1.2);
+        lureFXTween = this.tweens.add({
+            targets: lureFX,
+            blurStrength: 3,
+            duration: 500,
+            yoyo: true,
+            repeat: -1
+        });
+        
+        lureTimer = this.time.delayedCall(5000, function() { 
+            lurePowerup = false;
+
+            if (lureFXTween) {
+                lureFXTween.destroy();
+                lureFXTween = null;
+            }
+            if (lureFX) {
+                player.postFX.clear();
+                lureFX = null;
+            }
+        });
+    }
+
+    if (lurePowerup && prey) {
+        prey.children.entries.forEach(function(fish) {
+            if (fish.active) {
+                let directionX = player.x - fish.x;
+                let directionY = player.y - fish.y;
+                let distance = Math.sqrt(directionX * directionX + directionY * directionY);
+                if (distance > 0) {
+                    directionX = (directionX / distance) * 100;
+                    directionY = (directionY / distance) * 100;
+                    fish.setVelocity(directionX, directionY);
+                }
+            } 
+        });
     }
 }
 
